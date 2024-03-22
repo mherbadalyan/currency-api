@@ -40,7 +40,7 @@ public class ExternalResourceImpl implements ExternalResource {
         return toDto(jsonNode);
     }
 
-    JsonNode doGet(String currency) {
+    private JsonNode doGet(String currency) {
         try {
             HttpResponse<String> send = httpClient.send(HttpRequest.newBuilder()
                     .GET()

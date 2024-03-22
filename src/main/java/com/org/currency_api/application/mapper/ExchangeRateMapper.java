@@ -40,7 +40,7 @@ public class ExchangeRateMapper {
     }
 
 
-    public static Map<String, Double> toMap(JsonNode jsonNode) {
+    private static Map<String, Double> toMap(JsonNode jsonNode) {
         Map<String, Double> resultMap = new HashMap<>();
 
         Iterator<Map.Entry<String, JsonNode>> fieldsIterator = jsonNode.fields();

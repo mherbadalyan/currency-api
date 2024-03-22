@@ -99,22 +99,4 @@ class ExchangeRateMapperTest {
         //then
         Assertions.assertEquals(expectedDto, dto);
     }
-
-    @Test
-    void shouldConvertJsonToMap() throws IOException {
-        //given
-        var rate = generator.nextObject(String.class);
-        var rateValue = generator.nextObject(Double.class);
-
-        var rateNode = mapper.createObjectNode();
-        rateNode.set(rate, DoubleNode.valueOf(rateValue));
-
-        var expectedmap = Map.of(rate, rateValue);
-
-        //when
-        var map = ExchangeRateMapper.toMap(rateNode);
-
-        //then
-        Assertions.assertEquals(expectedmap, map);
-    }
 }
