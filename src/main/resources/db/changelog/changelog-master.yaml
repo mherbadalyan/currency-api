@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: create_exchange_rate_table
+      author: your_name_here
+      changes:
+        - createTable:
+            tableName: exchange_rate_entity
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_currency_id
+              - column:
+                  name: currency
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+                    uniqueConstraintName: uk_currency_currency
+              - column:
+                  name: rate
+                  type: jsonb
+              - column:
+                  name: update_date
+                  type: timestamp
