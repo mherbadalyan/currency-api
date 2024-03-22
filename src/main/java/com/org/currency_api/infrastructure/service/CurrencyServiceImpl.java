@@ -4,7 +4,7 @@ import com.org.currency_api.application.dto.Currencies;
 import com.org.currency_api.application.dto.ExchangeRateDto;
 import com.org.currency_api.domain.entity.ExchangeRateEntity;
 import com.org.currency_api.domain.repository.ExchangeRateEntityRepository;
-import com.org.currency_api.infrastructure.external.ExternalResourceImpl;
+import com.org.currency_api.infrastructure.external.ExternalResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -21,17 +21,17 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     private final Map<String, ExchangeRateDto> exchangeRateMap;
     private final ExchangeRateEntityRepository repository;
-    private final ExternalResourceImpl externalResourceImpl;
+    private final ExternalResource externalResourceImpl;
 
 
-    public CurrencyServiceImpl(ExchangeRateEntityRepository repository, ExternalResourceImpl externalResourceImpl) {
+    public CurrencyServiceImpl(ExchangeRateEntityRepository repository, ExternalResource externalResourceImpl) {
         this.repository = repository;
         this.externalResourceImpl = externalResourceImpl;
         this.exchangeRateMap = initFromDb();
     }
 
     @Override
-    public Currencies getCurrencyList() {
+    public Currencies getCurrencies() {
         var availableCurrencies = exchangeRateMap.keySet();
         if (availableCurrencies.isEmpty()) {
             throw new RuntimeException("There are no available currencies, please add currency.");
@@ -52,7 +52,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         if (exchangeRateMap.containsKey(currency)) {
             throw new RuntimeException("Currency %s is exist in available currencies.".formatted(currency));
         }
-        var exchangeRate = externalResourceImpl.getExchangeRate(currency);
+        var exchangeRate = externalResourceImpl.getExchangeRateUpdate(currency);
         var savedEntity = repository.save(toEntity(exchangeRate));
         exchangeRateMap.put(exchangeRate.getCurrency(), exchangeRate);
         return savedEntity.getCurrency();
@@ -75,7 +75,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         var currencies = repository.findCurrencies();
 
         var updatedMap = currencies.stream()
-                .map(externalResourceImpl::getExchangeRate)
+                .map(externalResourceImpl::getExchangeRateUpdate)
                 .collect(Collectors.toMap(ExchangeRateDto::getCurrency, dto -> dto));
 
         for (Map.Entry<String, ExchangeRateDto> entry : updatedMap.entrySet()) {

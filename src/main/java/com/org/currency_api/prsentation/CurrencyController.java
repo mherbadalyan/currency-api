@@ -26,7 +26,7 @@ public class CurrencyController {
             description = "Retrieves a list of available currencies supported by the Currency Exchange Service.")
     @GetMapping("/currencies")
     public ResponseEntity<?> getList() {
-        var currencyList = service.getCurrencyList();
+        var currencyList = service.getCurrencies();
         return new ResponseEntity<>(currencyList, HttpStatus.OK);
     }
 

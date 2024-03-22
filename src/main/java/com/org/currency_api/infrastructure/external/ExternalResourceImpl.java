@@ -19,31 +19,34 @@ public class ExternalResourceImpl implements ExternalResource {
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final String uri;
+    private final String key;
 
-    @Value(value = "${web.api.uri}")
-    private String uri;
-
-    @Value(value = "${web.api.key}")
-    private String key;
-
-    public ExternalResourceImpl(ObjectMapper objectMapper, HttpClient httpClient) {
+    public ExternalResourceImpl(ObjectMapper objectMapper, HttpClient httpClient,
+                                @Value(value = "${web.api.uri}")
+                                String uri,
+                                @Value(value = "${web.api.uri}")
+                                String key) {
         this.objectMapper = objectMapper;
         this.httpClient = httpClient;
+        this.uri = uri;
+        this.key = key;
     }
 
 
     @Override
-    public ExchangeRateDto getExchangeRate(String currency) {
+    public ExchangeRateDto getExchangeRateUpdate(String currency) {
         var jsonNode = doGet(currency);
         return toDto(jsonNode);
     }
 
     JsonNode doGet(String currency) {
         try {
-            var body = httpClient.send(HttpRequest.newBuilder()
+            HttpResponse<String> send = httpClient.send(HttpRequest.newBuilder()
                     .GET()
                     .uri(URI.create(uri.formatted(currency, key)))
-                    .build(), HttpResponse.BodyHandlers.ofString()).body();
+                    .build(), HttpResponse.BodyHandlers.ofString());
+            var body = send.body();
             return objectMapper.readTree(body);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

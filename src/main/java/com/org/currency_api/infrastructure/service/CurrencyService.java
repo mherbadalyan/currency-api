@@ -4,7 +4,7 @@ import com.org.currency_api.application.dto.Currencies;
 import com.org.currency_api.application.dto.ExchangeRateDto;
 
 public interface CurrencyService {
-    Currencies getCurrencyList();
+    Currencies getCurrencies();
     ExchangeRateDto getExchangeRate(String currency);
     String addCurrency(String currency);
 }
