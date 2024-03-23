@@ -4,7 +4,9 @@ import com.org.currency_api.application.dto.Currencies;
 import com.org.currency_api.application.dto.ExchangeRateDto;
 import com.org.currency_api.domain.entity.ExchangeRateEntity;
 import com.org.currency_api.domain.repository.ExchangeRateEntityRepository;
-import com.org.currency_api.infrastructure.external.ExternalResource;
+import com.org.currency_api.infrastructure.external.CurrencyResource;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -17,25 +19,22 @@ import static com.org.currency_api.application.mapper.ExchangeRateMapper.toDto;
 import static com.org.currency_api.application.mapper.ExchangeRateMapper.toEntity;
 
 @Service
-public class CurrencyServiceImpl implements CurrencyService {
+public class CurrencyServiceImpl implements CurrencyService, ApplicationListener<ContextRefreshedEvent> {
 
     private final Map<String, ExchangeRateDto> exchangeRateMap;
     private final ExchangeRateEntityRepository repository;
-    private final ExternalResource externalResourceImpl;
+    private final CurrencyResource currencyResource;
 
 
-    public CurrencyServiceImpl(ExchangeRateEntityRepository repository, ExternalResource externalResourceImpl) {
+    public CurrencyServiceImpl(ExchangeRateEntityRepository repository, CurrencyResource currencyResource) {
         this.repository = repository;
-        this.externalResourceImpl = externalResourceImpl;
-        this.exchangeRateMap = initFromDb();
+        this.currencyResource = currencyResource;
+        this.exchangeRateMap = new ConcurrentHashMap<>();
     }
 
     @Override
     public Currencies getCurrencies() {
         var availableCurrencies = exchangeRateMap.keySet();
-        if (availableCurrencies.isEmpty()) {
-            throw new RuntimeException("There are no available currencies, please add currency.");
-        }
         return new Currencies(availableCurrencies);
     }
 
@@ -52,40 +51,41 @@ public class CurrencyServiceImpl implements CurrencyService {
         if (exchangeRateMap.containsKey(currency)) {
             throw new RuntimeException("Currency %s is exist in available currencies.".formatted(currency));
         }
-        var exchangeRate = externalResourceImpl.getExchangeRateUpdate(currency);
+        var exchangeRate = currencyResource.getExchangeRateUpdate(currency);
         var savedEntity = repository.save(toEntity(exchangeRate));
-        exchangeRateMap.put(exchangeRate.getCurrency(), exchangeRate);
+        exchangeRateMap.put(exchangeRate.currency(), exchangeRate);
         return savedEntity.getCurrency();
     }
 
-    private Map<String, ExchangeRateDto> initFromDb() {
-        var map = new ConcurrentHashMap<String, ExchangeRateDto>();
-        var exchangeRateEntities = repository.findAll();
-        if (!exchangeRateEntities.isEmpty()) {
-            for (ExchangeRateEntity exchangeRateEntity : exchangeRateEntities) {
-                var exchangeRate = toDto(exchangeRateEntity);
-                map.put(exchangeRate.getCurrency(), exchangeRate);
-            }
-        }
-        return map;
-    }
-
-    @Scheduled(timeUnit = TimeUnit.HOURS, fixedRate = 1)
+    @Scheduled(timeUnit = TimeUnit.HOURS, fixedDelay = 1)
     public void updateExchangeRates() {
         var currencies = repository.findCurrencies();
 
         var updatedMap = currencies.stream()
-                .map(externalResourceImpl::getExchangeRateUpdate)
-                .collect(Collectors.toMap(ExchangeRateDto::getCurrency, dto -> dto));
+                .map(currencyResource::getExchangeRateUpdate)
+                .collect(Collectors.toMap(ExchangeRateDto::currency, dto -> dto));
 
         for (Map.Entry<String, ExchangeRateDto> entry : updatedMap.entrySet()) {
             var updatedDto = entry.getValue();
             var currency = entry.getKey();
             var entity = repository.findByCurrency(currency);
-            entity.setRates(updatedDto.getRates());
-            entity.setUpdateDate(updatedDto.getUpdateDate());
+            entity.setRates(updatedDto.rates());
+            entity.setUpdateDate(updatedDto.updateDate());
             repository.save(entity);
             exchangeRateMap.put(currency, updatedDto);
+        }
+    }
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        initFromDb();
+    }
+
+    private void initFromDb() {
+        var exchangeRateEntities = repository.findAll();
+        for (ExchangeRateEntity exchangeRateEntity : exchangeRateEntities) {
+            var exchangeRate = toDto(exchangeRateEntity);
+            exchangeRateMap.put(exchangeRate.currency(), exchangeRate);
         }
     }
 }

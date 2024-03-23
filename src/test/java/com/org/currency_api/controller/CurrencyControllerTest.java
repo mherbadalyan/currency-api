@@ -1,4 +1,4 @@
-package com.org.currency_api.prsentation;
+package com.org.currency_api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.org.currency_api.application.dto.CreateRequest;
@@ -55,7 +55,7 @@ class CurrencyControllerTest {
     @Test
     void testGetCurrency() throws Exception {
         var currency = generator.nextObject(String.class);
-        var exchangeRateDto = ExchangeRateDto.builder().currency(currency).build();
+        var exchangeRateDto = new ExchangeRateDto(currency,null,null);
         when(currencyService.getExchangeRate(currency)).thenReturn(exchangeRateDto);
         mockMvc.perform(MockMvcRequestBuilders.get("/exchange-rates/%s".formatted(currency)))
                 .andExpect(MockMvcResultMatchers.status().isOk())

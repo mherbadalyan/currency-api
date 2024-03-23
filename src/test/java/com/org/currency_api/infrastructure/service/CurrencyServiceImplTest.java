@@ -4,14 +4,17 @@ import com.org.currency_api.application.dto.Currencies;
 import com.org.currency_api.application.dto.ExchangeRateDto;
 import com.org.currency_api.domain.entity.ExchangeRateEntity;
 import com.org.currency_api.domain.repository.ExchangeRateEntityRepository;
-import com.org.currency_api.infrastructure.external.ExternalResource;
+import com.org.currency_api.infrastructure.external.CurrencyResource;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,25 +25,28 @@ class CurrencyServiceImplTest {
 
     private CurrencyServiceImpl currencyService;
     private ExchangeRateEntityRepository repository;
-    private ExternalResource externalResource;
+    private CurrencyResource currencyResource;
     private EasyRandom generator;
 
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(ExchangeRateEntityRepository.class);
-        externalResource = Mockito.mock(ExternalResource.class);
+        currencyResource = Mockito.mock(CurrencyResource.class);
         generator = new EasyRandom();
     }
 
     @Test
-    void testGetCurrencies() {
+    void testGetCurrencies() throws NoSuchFieldException, IllegalAccessException {
         //given
         var currency = generator.nextObject(String.class);
-        var entity = ExchangeRateEntity.builder().currency(currency).build();
+        var expectedExchangeDto = new ExchangeRateDto(currency,null,null);
 
         //when
-        when(repository.findAll()).thenReturn(List.of(entity));
-        currencyService = new CurrencyServiceImpl(repository, externalResource);
+        currencyService = new CurrencyServiceImpl(repository, currencyResource);
+        Field exchangeRateMapField = CurrencyServiceImpl.class.getDeclaredField("exchangeRateMap");
+        exchangeRateMapField.setAccessible(true);
+        var exchangeRateMap = (Map<String, ExchangeRateDto>) exchangeRateMapField.get(currencyService);
+        exchangeRateMap.put(currency,expectedExchangeDto);
         var currencies = currencyService.getCurrencies();
 
         //then
@@ -48,31 +54,34 @@ class CurrencyServiceImplTest {
     }
 
     @Test
-    void testGetExchangeRate() {
+    void testGetExchangeRate() throws NoSuchFieldException, IllegalAccessException {
         //given
         var currency = generator.nextObject(String.class);
-        var entity = ExchangeRateEntity.builder().currency(currency).build();
-        var expectedExchangeDto = ExchangeRateDto.builder().currency(currency).build();
+        var expectedExchangeDto = new ExchangeRateDto(currency,null,null);
 
         //when
-        when(repository.findAll()).thenReturn(List.of(entity));
-        currencyService = new CurrencyServiceImpl(repository, externalResource);
-        var exchangeRate = currencyService.getExchangeRate(currency);
+        currencyService = new CurrencyServiceImpl(repository, currencyResource);
+
+        Field exchangeRateMapField = CurrencyServiceImpl.class.getDeclaredField("exchangeRateMap");
+        exchangeRateMapField.setAccessible(true);
+        var exchangeRateMap = (Map<String, ExchangeRateDto>) exchangeRateMapField.get(currencyService);
+        exchangeRateMap.put(currency,expectedExchangeDto);
+        var exchangeRateDto = currencyService.getExchangeRate(currency);
 
         //then
-        assertEquals(expectedExchangeDto, exchangeRate);
+        assertEquals(expectedExchangeDto, exchangeRateDto);
     }
 
     @Test
     void testAddCurrencies() {
         //given
         var currency = generator.nextObject(String.class);
-        var exchangeDto = ExchangeRateDto.builder().currency(currency).build();
+        var exchangeDto = new ExchangeRateDto(currency,null,null);
 
         //when
-        when(externalResource.getExchangeRateUpdate(currency)).thenReturn(exchangeDto);
+        when(currencyResource.getExchangeRateUpdate(currency)).thenReturn(exchangeDto);
         when(repository.save(any())).thenReturn(ExchangeRateEntity.builder().currency(currency).build());
-        currencyService = new CurrencyServiceImpl(repository, externalResource);
+        currencyService = new CurrencyServiceImpl(repository, currencyResource);
         var savedCurrency = currencyService.addCurrency(currency);
 
         //then
@@ -85,14 +94,14 @@ class CurrencyServiceImplTest {
         var currency = generator.nextObject(String.class);
         var updateDate = generator.nextObject(LocalDateTime.class);
         var notUpdatedEntity = ExchangeRateEntity.builder().currency(currency).build();
-        var updateDto = ExchangeRateDto.builder().currency(currency).updateDate(updateDate).build();
+        var updateDto = new ExchangeRateDto(currency,updateDate,null);
         var updatedEntity = ExchangeRateEntity.builder().currency(currency).updateDate(updateDate).build();
 
         //when
         when(repository.findCurrencies()).thenReturn(List.of(currency));
-        when(externalResource.getExchangeRateUpdate(currency)).thenReturn(updateDto);
+        when(currencyResource.getExchangeRateUpdate(currency)).thenReturn(updateDto);
         when(repository.findByCurrency(currency)).thenReturn(notUpdatedEntity);
-        currencyService = new CurrencyServiceImpl(repository, externalResource);
+        currencyService = new CurrencyServiceImpl(repository, currencyResource);
         currencyService.updateExchangeRates();
 
         //then

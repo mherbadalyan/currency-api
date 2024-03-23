@@ -1,4 +1,4 @@
-package com.org.currency_api.prsentation;
+package com.org.currency_api.controller;
 
 import com.org.currency_api.application.dto.CreateRequest;
 import com.org.currency_api.application.dto.CreateResponse;

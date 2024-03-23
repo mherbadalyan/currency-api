@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: create_exchange_rate_table
-      author: your_name_here
+      author: Mher Badalyan
       changes:
         - createTable:
             tableName: exchange_rate_entity
@@ -9,7 +9,6 @@ databaseChangeLog:
               - column:
                   name: id
                   type: bigint
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     primaryKeyName: pk_currency_id
@@ -20,8 +19,10 @@ databaseChangeLog:
                     unique: true
                     uniqueConstraintName: uk_currency_currency
               - column:
-                  name: rate
+                  name: rates
                   type: jsonb
               - column:
                   name: update_date
                   type: timestamp
+        - sql:
+            sql: CREATE SEQUENCE exchange_rate_entity_seq INCREMENT BY 50;
