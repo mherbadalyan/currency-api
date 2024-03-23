@@ -17,7 +17,7 @@ Exchange rates are fetched from https://currencybeacon.com/, and they are schedu
 Once the application is up and running, you can use the following endpoints to interact with the API:
 
 * GET /currencies: Retrieve a list of currencies used in the project.
-* GET /exchange-rates/{currency}: Get exchange rates for a specific currency.
+* GET /currencies/{currency}/exchange-rates: Get exchange rates for a specific currency.
 * POST /currencies: Add a new currency for getting exchange rates.
   
 ## Database Schema

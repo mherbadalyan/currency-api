@@ -24,5 +24,6 @@ databaseChangeLog:
               - column:
                   name: update_date
                   type: timestamp
-        - sql:
-            sql: CREATE SEQUENCE exchange_rate_entity_seq INCREMENT BY 50;
+        - createSequence:
+             sequenceName: exchange_rate_entity_seq
+             incrementBy: 50

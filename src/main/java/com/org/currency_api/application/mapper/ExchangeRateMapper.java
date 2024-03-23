@@ -22,6 +22,6 @@ public class ExchangeRateMapper {
     }
 
     public static ExchangeRateDto toDto(ExchangeRateResponse response) {
-        return new ExchangeRateDto(response.getCurrency(), response.getUpdateDate(), response.getRates());
+        return new ExchangeRateDto(response.currency(), response.updateDate(), response.rates());
     }
 }

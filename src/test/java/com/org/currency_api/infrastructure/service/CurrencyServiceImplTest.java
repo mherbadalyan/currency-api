@@ -79,13 +79,13 @@ class CurrencyServiceImplTest {
         var exchangeDto = new ExchangeRateDto(currency,null,null);
 
         //when
-        when(currencyResource.getExchangeRateUpdate(currency)).thenReturn(exchangeDto);
+        when(currencyResource.getExchangeRates(currency)).thenReturn(exchangeDto);
         when(repository.save(any())).thenReturn(ExchangeRateEntity.builder().currency(currency).build());
         currencyService = new CurrencyServiceImpl(repository, currencyResource);
         var savedCurrency = currencyService.addCurrency(currency);
 
         //then
-        assertEquals(currency, savedCurrency);
+        assertEquals(exchangeDto, savedCurrency);
     }
 
     @Test
@@ -99,7 +99,7 @@ class CurrencyServiceImplTest {
 
         //when
         when(repository.findCurrencies()).thenReturn(List.of(currency));
-        when(currencyResource.getExchangeRateUpdate(currency)).thenReturn(updateDto);
+        when(currencyResource.getExchangeRates(currency)).thenReturn(updateDto);
         when(repository.findByCurrency(currency)).thenReturn(notUpdatedEntity);
         currencyService = new CurrencyServiceImpl(repository, currencyResource);
         currencyService.updateExchangeRates();

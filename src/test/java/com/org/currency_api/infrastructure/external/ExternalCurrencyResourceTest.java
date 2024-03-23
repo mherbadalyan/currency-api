@@ -50,11 +50,10 @@ class ExternalCurrencyResourceTest {
         var externalResource = new ExternalCurrencyResource(mockObjectMapper, httpClient, mockUri, mockKey);
 
         var exchangeRateDto = new ExchangeRateDto(currency, dateTime, Map.of(rate, rateValue));
-        var response = externalResource.getExchangeRateUpdate(generator.nextObject(String.class));
+        var response = externalResource.getExchangeRates(generator.nextObject(String.class));
 
         // then
         verify(httpClient).send(any(HttpRequest.class), any());
         Assertions.assertEquals(exchangeRateDto, response);
     }
-
 }

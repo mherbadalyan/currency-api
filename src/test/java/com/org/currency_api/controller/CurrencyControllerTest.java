@@ -57,7 +57,7 @@ class CurrencyControllerTest {
         var currency = generator.nextObject(String.class);
         var exchangeRateDto = new ExchangeRateDto(currency,null,null);
         when(currencyService.getExchangeRate(currency)).thenReturn(exchangeRateDto);
-        mockMvc.perform(MockMvcRequestBuilders.get("/exchange-rates/%s".formatted(currency)))
+        mockMvc.perform(MockMvcRequestBuilders.get("/currencies/%s/exchange-rates".formatted(currency)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
@@ -67,11 +67,12 @@ class CurrencyControllerTest {
         var currency = generator.nextObject(String.class);
         var request = new CreateRequest(currency);
         var requestBody = objectMapper.writeValueAsString(request);
-        when(currencyService.addCurrency(currency)).thenReturn(currency);
+        var exchangeRate = new ExchangeRateDto(currency,null,null);
+        when(currencyService.addCurrency(currency)).thenReturn(exchangeRate);
         mockMvc.perform(MockMvcRequestBuilders.post("/currencies")
                         .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

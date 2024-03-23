@@ -1,12 +1,12 @@
 package com.org.currency_api.controller;
 
 import com.org.currency_api.application.dto.CreateRequest;
-import com.org.currency_api.application.dto.CreateResponse;
+import com.org.currency_api.application.dto.Currencies;
+import com.org.currency_api.application.dto.ExchangeRateDto;
 import com.org.currency_api.infrastructure.service.CurrencyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
         The Currency Exchange Service API provides functionalities
         for managing currencies and accessing exchange rates.
         """)
+@RequestMapping("/currencies")
 public class CurrencyController {
     private final CurrencyService service;
 
@@ -21,29 +22,27 @@ public class CurrencyController {
         this.service = service;
     }
 
-
     @Operation(summary = "Get currency list",
             description = "Retrieves a list of available currencies supported by the Currency Exchange Service.")
-    @GetMapping("/currencies")
-    public ResponseEntity<?> getList() {
-        var currencyList = service.getCurrencies();
-        return new ResponseEntity<>(currencyList, HttpStatus.OK);
+    @GetMapping()
+    @ResponseStatus(HttpStatus.OK)
+    public Currencies getList() {
+        return service.getCurrencies();
     }
 
     @Operation(summary = "Get exchange rate",
             description = "Retrieves exchange rates for a specific currency.")
-    @GetMapping("/exchange-rates/{currency}")
-    public ResponseEntity<?> getCurrency(@PathVariable("currency") String currency) {
-        var exchangeRate = service.getExchangeRate(currency);
-        return new ResponseEntity<>(exchangeRate, HttpStatus.OK);
+    @GetMapping("/{currency}/exchange-rates")
+    @ResponseStatus(HttpStatus.OK)
+    public ExchangeRateDto getCurrency(@PathVariable("currency") String currency) {
+        return service.getExchangeRate(currency);
     }
 
     @Operation(summary = "Add currency",
             description = "Adds a new currency to the Currency Exchange Service. ")
-    @PostMapping("/currencies")
-    public ResponseEntity<?> addCurrency(@RequestBody CreateRequest request) {
-        var savedCurrency = service.addCurrency(request.currency());
-        var response = new CreateResponse(savedCurrency, "added");
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
+    public ExchangeRateDto addCurrency(@RequestBody CreateRequest request) {
+        return service.addCurrency(request.currency());
     }
 }

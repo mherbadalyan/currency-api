@@ -13,6 +13,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExchangeRateEntity {
@@ -25,17 +26,4 @@ public class ExchangeRateEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String,Double> rates;
     private LocalDateTime updateDate;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ExchangeRateEntity that = (ExchangeRateEntity) o;
-        return Objects.equals(id, that.id) && Objects.equals(currency, that.currency) && Objects.equals(rates, that.rates) && Objects.equals(updateDate, that.updateDate);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, currency, rates, updateDate);
-    }
 }

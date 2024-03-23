@@ -41,20 +41,20 @@ public class CurrencyServiceImpl implements CurrencyService, ApplicationListener
     @Override
     public ExchangeRateDto getExchangeRate(String currency) {
         if (!exchangeRateMap.containsKey(currency)) {
-            throw new RuntimeException("There are no available currency %s".formatted(currency));
+            throw new RuntimeException("There is no available currency %s".formatted(currency));
         }
         return exchangeRateMap.get(currency);
     }
 
     @Override
-    public String addCurrency(String currency) {
+    public ExchangeRateDto addCurrency(String currency) {
         if (exchangeRateMap.containsKey(currency)) {
-            throw new RuntimeException("Currency %s is exist in available currencies.".formatted(currency));
+            throw new RuntimeException("Currency %s exists in available currencies.".formatted(currency));
         }
-        var exchangeRate = currencyResource.getExchangeRateUpdate(currency);
+        var exchangeRate = currencyResource.getExchangeRates(currency);
         var savedEntity = repository.save(toEntity(exchangeRate));
         exchangeRateMap.put(exchangeRate.currency(), exchangeRate);
-        return savedEntity.getCurrency();
+        return exchangeRate;
     }
 
     @Scheduled(timeUnit = TimeUnit.HOURS, fixedDelay = 1)
@@ -62,7 +62,7 @@ public class CurrencyServiceImpl implements CurrencyService, ApplicationListener
         var currencies = repository.findCurrencies();
 
         var updatedMap = currencies.stream()
-                .map(currencyResource::getExchangeRateUpdate)
+                .map(currencyResource::getExchangeRates)
                 .collect(Collectors.toMap(ExchangeRateDto::currency, dto -> dto));
 
         for (Map.Entry<String, ExchangeRateDto> entry : updatedMap.entrySet()) {

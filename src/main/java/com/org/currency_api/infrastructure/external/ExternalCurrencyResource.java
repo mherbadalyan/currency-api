@@ -3,7 +3,7 @@ package com.org.currency_api.infrastructure.external;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.org.currency_api.application.dto.ExchangeRateDto;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,7 +13,7 @@ import java.net.http.HttpResponse;
 
 import static com.org.currency_api.application.mapper.ExchangeRateMapper.toDto;
 
-@Service
+@Component
 public class ExternalCurrencyResource implements CurrencyResource {
 
     private final ObjectMapper objectMapper;
@@ -33,7 +33,7 @@ public class ExternalCurrencyResource implements CurrencyResource {
     }
 
     @Override
-    public ExchangeRateDto getExchangeRateUpdate(String currency) {
+    public ExchangeRateDto getExchangeRates(String currency) {
         try {
             HttpResponse<String> send = httpClient.send(HttpRequest.newBuilder()
                     .GET()
